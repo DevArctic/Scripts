@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for i in *.zip
+do
+	unzip "$i"
+	rm -rf "$i"
+done
+for i in *.rar
+do
+	unrar x "$i" 
+	rm -rf "$i"
+done
