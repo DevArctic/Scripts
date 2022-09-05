@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo "Link:"
+read link
+echo "filename?"
+read name
+ffmpeg -i "$link" -codec copy "$name.mp4"
+
