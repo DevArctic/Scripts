@@ -1,0 +1,23 @@
+#!/bin/bash
+
+
+COUNTER=1
+BASE=$PWD
+
+for i in *.txt
+do
+	mkdir "${i%.*}"
+	mv "$i" "${i%.*}"
+	cd "${i%.*}"
+	echo "Downloading '${i%.*}'"
+	while read -r line
+	do
+		wget $line -O "$COUNTER.jpg"
+		((COUNTER=COUNTER+1))
+	done < "$i"
+	COUNTER=1
+	mv "$i" "$BASE"
+	cd "$BASE"
+done
+	
+
