@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for i in */
+do
+	zip -r "${i%/}.cbr" "$i"
+	rm -rf "$i"
+done
+
