@@ -1,0 +1,18 @@
+#!/usr/bin/python3.10
+import hashlib
+import os
+from progress.bar import IncrementalBar
+
+list = [f for f in os.listdir(os.getcwd()) if os.path.isfile(os.path.join(os.getcwd(), f))]
+bar = IncrementalBar('Processing:', max=len(list))
+for each in list:
+	#print (each)
+	h = hashlib.sha1()
+	with open(each, "rb") as f:
+		while chunk := f.read(8192):
+			h.update(chunk)
+	hash = h.hexdigest()
+	tuple = os.path.splitext(each)[1].lower()
+	os.rename(each, hash + tuple)
+	bar.next()
+bar.finish()	
