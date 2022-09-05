@@ -1,4 +1,5 @@
 #!/bin/bash
+# The same thing as z2cbr but to a zip instead.
 
 for i in */
 do
