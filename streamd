@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#Useful for downloading m3u8s and other streams that aren't available
+#as whole files. Is it necessary to make a script for one command? No.
+#But I did anyway.
+
 echo "Link:"
 read link
 echo "filename?"
