@@ -1,0 +1,50 @@
+#!/usr/bin/python3.10
+
+import os
+from PIL import Image
+from progress.bar import IncrementalBar
+from pillow_heif import register_heif_opener
+
+register_heif_opener()
+
+list = os.listdir(os.getcwd())
+#print (list)
+bar = IncrementalBar('Processing:', max=len(list))
+for each in list:
+	bar.next()
+	if each.lower().endswith('.gif'):
+		img = Image.open(each)
+		iffi = getattr(img, "is_animated", False)
+		if iffi:
+			#print ('animated gif')
+			pass
+		else:
+			#print ('gif')
+			pass
+		img.close()
+	elif each.lower().endswith('.webp'):
+		#print (each)
+		img = Image.open(each)
+		iffi = getattr(img, "is_animated", False)
+		if iffi:
+			#print ('animated webp')
+			img.info.pop('background', None)
+			img.save(each.replace(".webp",".gif"), 'gif', save_all=True)
+		else:
+			#print('webp')
+			img.save(each.replace(".webp",".jpg"), 'jpeg')
+	elif each.lower().endswith('.heic'):
+		img = Image.open(each)
+		iffi = getattr(img, "is_animated", False)
+		if iffi:
+			#print ('animated HEIF')
+			img.info.pop('background', None)
+			img.save(each.lower().replace(".heic",".gif"), 'gif', save_all=True)
+		else:
+			#print ("heic still")
+			img.save(each.replace(".heic",".png"), 'png', save_all=True)
+	else:
+		pass
+		#print ('neither')	
+bar.finish()
+
