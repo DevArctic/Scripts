@@ -1,5 +1,13 @@
 #!/usr/bin/python3.10
 
+# Currently, this script will take in files and spit them out, but if it's a webp, it'll
+# check if it's animated or not, then convert it to either jpeg or gif, depending.
+#It should also do something similar with HEIC, but I don't remember if I got that working
+#or if I just gave up and left the code there. Oh well. It's a work in progress.
+#The goal is to eventually have it process all kinds of media for storage.
+#Until webp is better supported, I'll still be doing this.
+#It also has a progress bar.
+
 import os
 from PIL import Image
 from progress.bar import IncrementalBar
