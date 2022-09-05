@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This script can be dangerous because it'll delete your archives
+# after it runs. However, I sometimes need it to do that when I'm working
+# in limited space.
+
 for i in *.zip
 do
 	unzip "$i"
