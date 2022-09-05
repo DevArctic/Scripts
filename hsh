@@ -1,4 +1,9 @@
 #!/usr/bin/python3.10
+
+# This script will hash the file and rename it to the hash,
+# So when you add duplicate files to a folder they'll be identified.
+
+
 import hashlib
 import os
 from progress.bar import IncrementalBar
