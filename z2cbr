@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This script will take any directory within the working dir
+# zip it into a cbr file and then delete the directory,
+# leaving only the cbr. Use with care.
+
 for i in */
 do
 	zip -r "${i%/}.cbr" "$i"
