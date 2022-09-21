@@ -37,3 +37,4 @@ do
         ((COUNTER=COUNTER+1));
     done < "$x"
 done
+echo \n
