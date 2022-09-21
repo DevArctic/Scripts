@@ -1,12 +1,39 @@
+#Will download multiple streams, with progress bar,
+#and also name them. But the way it's written here will only work
+#with a particular website. I customize the naming part per site.
+#Also, it doesn't just run ffmpeg, it starts an ffmpeg container
+#behind a vpn, but that's not necessary.
+
 #!/bin/bash
 
-#Useful for downloading m3u8s and other streams that aren't available
-#as whole files. Is it necessary to make a script for one command? No.
-#But I did anyway.
+COUNTER=1
+re="name=(.*)"
+prefix="name="
 
-echo "Link:"
-read link
-echo "filename?"
-read name
-ffmpeg -i "$link" -codec copy "$name.mp4"
+function ProgressBar {
+    let _progress=(${1}*100/${2}*100)/100
+    let _done=(${_progress}*4)/10
+    let _left=40-$_done
+    _done=$(printf "%${_done}s")
+    _left=$(printf "%${_left}s")
+    printf "\rProgress : [${_done// /#}${_left// /-}] ${_progress}%%"; }
 
+#echo "series:"
+#read series
+
+totes=$(wc -l < /path/to/list.txt) 
+for x in /path/to/list.txt
+do
+    while read -r line;
+    do
+        ProgressBar ${COUNTER} ${totes}
+        if [[ $line =~ $re ]]; 
+        then
+            title=${BASH_REMATCH#"$prefix"};
+        else
+            sleep 1;
+        fi
+        sudo docker run --rm -v /path/to/downloads:/down -w /down --network=container:Gluetun_S jrottenberg/ffmpeg -hide_banner -loglevel error -i "$line" -codec copy "$title";
+        ((COUNTER=COUNTER+1));
+    done < "$x"
+done
