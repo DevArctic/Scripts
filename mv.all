@@ -6,14 +6,17 @@ import shutil
 from PIL import Image
 from progress.bar import IncrementalBar
 import subprocess
+#Where your dump of downloaded files is, and where you want them to go.
+source = '/your/dump/dir'
+dest_pics = '/your/pic/dir/'
+dest_vids = '/your/vid/dir/'
+dest_gifs = '/your/gif/dir/'
 
-source='/home/den/Downloads/'
+#Get all the files in this directory, check if they're files and not directories,
+#store the names of all the files in a list.
 files = [f for f in os.listdir(source) if os.path.isfile(os.path.join(source, f))]
 
-dest_pics = '/Starfire/2_clean_pics/'
-dest_vids = '/Starfire/4_video_clean/'
-dest_gifs = '/Starfire/9_gifs/'
-
+#Hash function
 def hashit(inputfile):
 	h = hashlib.sha1()
 	with open(inputfile, "rb") as f:
@@ -22,6 +25,7 @@ def hashit(inputfile):
 		hash = h.hexdigest()
 		return hash
 
+#Init counters.
 webp_2_gif = 0
 webp_2_jpg = 0
 webm_2_mp4 = 0
@@ -31,7 +35,12 @@ pngs = 0
 gifs = 0
 t_bytes = 0
 
+#Make a progress bar for cleaning.
 clean_bar = IncrementalBar('Cleaning:', max=len(files))
+
+#This loop will convert all webps to either gif or jpg.
+#It will also convert all webms to mp4s.
+#It removes the original file afterwards.
 for each in files:
 	clean_bar.next()
 	if each.lower().endswith('.webp'):
@@ -54,9 +63,19 @@ for each in files:
 	else:
 		pass
 clean_bar.finish()
+
+#run the list comprehension again, because the file names have changed after
+#being cleaned.
 files = [f for f in os.listdir(source) if os.path.isfile(os.path.join(source, f))]
 
+#start a progress bar for hashing and moving.
 hash_mv_bar = IncrementalBar("Hashing and moving:", max=len(files))
+
+#each possibility can be customized to determine what to do, but these 
+#are each hashing the files, and moving them to a new dir with the names
+#changed to be hashed, so duplicates are just overwritten.
+# It doesn't catch duplicates that are slightly different but maybe I'll do that
+# later.
 for each in files:
 	if each.lower().endswith('.jpg'):
 		hash_mv_bar.next()
@@ -98,9 +117,13 @@ for each in files:
 		hash_mv_bar.next()
 		pass
 hash_mv_bar.finish()
+
+#unit conversion
 t_GB = t_bytes/1073741824
 t_MB = t_bytes/1048576
 t_KB = t_bytes/1024
+
+#print counters
 print("Webps converted to GIFs: " + str(webp_2_gif))
 print("Webps converted to JPGs: " + str(webp_2_jpg))
 print("Webms converted to MP4s: " + str(webm_2_mp4))
@@ -108,6 +131,8 @@ print("JPGs moved: " + str(jpgs))
 print("PNGs moved: " + str(pngs))
 print("GIFs moved: " + str(gifs))
 print("MP4s moved: " + str(mp4s))
+
+#print data moved based on how much was moved.
 if t_GB > 1:
 	print("Total transfer = " + ("%.2f" % t_GB) + " GBs.")
 elif t_MB > 1:
