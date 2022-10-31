@@ -222,7 +222,7 @@ print("PDFs moved: " + str(pdfs))
 print("EPUBs moved: " + str(epubs))
 print("Porn moved: " + str(porn))
 print("Dupes found: " + str(dupes_found))
-print(len(hashdict))
+print("Hash Dictionary: " + len(hashdict))
 if t_GB > 1:
 	print("Total transfer = " + ("%.2f" % t_GB) + " GBs.")
 elif t_MB > 1:
