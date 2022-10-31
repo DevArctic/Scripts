@@ -1,0 +1,9 @@
+#!/bin/bash
+
+n=0
+for f in *
+do
+	d="dir$((n++ / 250))"
+	mkdir -p "$d"
+	mv -- "$f" "$d/$f"
+done

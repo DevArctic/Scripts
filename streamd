@@ -1,9 +1,3 @@
-#Will download multiple streams, with progress bar,
-#and also name them. But the way it's written here will only work
-#with a particular website. I customize the naming part per site.
-#Also, it doesn't just run ffmpeg, it starts an ffmpeg container
-#behind a vpn, but that's not necessary.
-
 #!/bin/bash
 
 COUNTER=1

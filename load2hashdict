@@ -1,0 +1,23 @@
+#!/usr/bin/python3.10
+
+import json
+import os
+import datetime
+from progress.bar import IncrementalBar
+
+cwd = os.getcwd()
+files = os.listdir()
+bar = IncrementalBar("Adding to dictionary:",max=len(files))
+
+with open('/home/den/hashdict.json') as d:
+	data = d.read()
+hashdict = json.loads(data)
+
+
+for file in files:
+	hashdict[file] = str(datetime.datetime.now())
+	bar.next()
+
+with open('/home/den/hashdict.json', 'w') as convert_file:
+	convert_file.write(json.dumps(hashdict))
+	

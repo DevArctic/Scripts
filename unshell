@@ -1,0 +1,14 @@
+#!/bin/bash
+
+start="$PWD"
+for i in */; do
+	cd "$i"
+	for j in *; do
+		mv -vn "$j" "$start";
+	done
+	cd "$start";
+done
+
+	
+		
+	
