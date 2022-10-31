@@ -11,26 +11,17 @@ import magic
 import datetime
 import json
 
-mime = magic.Magic(mime=True)
-
-
+"""Source directories."""
 source='/home/den/Downloads/'
 p_vids='/home/den/p_vids/'
-files = [f for f in os.listdir(source) if os.path.isfile(os.path.join(source, f))]
 
-dest_pics = '/Starfire/2_clean_pics/'
-dest_vids = '/Starfire/4_video_clean/'
+"""Destination directories."""
+dest_pics = '/Starfire/Clean-Pics/'
+dest_vids = '/Starfire/Clean-Vids/'
 dest_gifs = '/Starfire/GIFs/'
 dest_books = '/Joi/Books/'
 
-def hashit(inputfile):
-	h = hashlib.sha1()
-	with open(inputfile, "rb") as f:
-		while chunk := f.read(8192):
-			h.update(chunk)
-		hash = h.hexdigest()
-		return hash
-
+"""init vars"""
 webp_2_gif = 0
 webp_2_jpg = 0
 webm_2_mp4 = 0
@@ -45,125 +36,170 @@ t_bytes = 0
 porn = 0
 dupes_found = 0
 
+"""Functions"""
+def hashit(inputfile):
+	"""Hash a file and return the hash."""
+	h = hashlib.sha1()
+	with open(inputfile, "rb") as f:
+		while chunk := f.read(8192):
+			h.update(chunk)
+		hash = h.hexdigest()
+		return hash
+		
+def convertWEBP(inputfile):
+	"""Converts WEBP to either GIF or JPG."""
+	img = Image.open(os.path.join(source, inputfile))
+	iffi = getattr(img, "is_animated", False)
+	if iffi:
+		img.info.pop('background', None)
+		img.save(each.replace(".webp",".gif"), 'gif', save_all=True)
+		os.remove(os.path.join(source, inputfile))
+	else:
+		img.save(each.replace(".webp",".jpg"), 'jpeg')
+		os.remove(os.path.join(source, inputfile))
+			
+def convertWEBM(inputfile):
+	"""Converts WEBM to MP4."""
+	nm = os.path.splitext(inputfile)
+	subprocess.run(['ffmpeg','-y','-i',os.path.join(source,inputfile), (source+nm[0]+'.mp4')],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+	os.remove(os.path.join(source,inputfile))
+	
+def convertMOV(inputfile):
+	"""Converts MOV to MP4."""
+	nm = os.path.splitext(each)
+	subprocess.run(['ffmpeg','-y','-i',os.path.join(source,each), (source+nm[0]+'.mp4')],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
+	os.remove(os.path.join(source, each))
+	
+def newFile(inputfile,ext):
+	return hashit(orig) + ext
+	
+
+"""Get list of files in source dir."""
+files = [f for f in os.listdir(source) if os.path.isfile(os.path.join(source, f))]
+
 clean_bar = IncrementalBar('Cleaning:', max=len(files))
+
+"""Check for files to be converted..."""
 for each in files:
 	clean_bar.next()
 	if each.lower().endswith('.webp'):
-		img = Image.open(os.path.join(source, each))
-		iffi = getattr(img, "is_animated", False)
-		if iffi:
-			img.info.pop('background', None)
-			img.save(each.replace(".webp",".gif"), 'gif', save_all=True)
-			os.remove(os.path.join(source, each))
-			webp_2_gif = webp_2_gif + 1
-		else:
-			img.save(each.replace(".webp",".jpg"), 'jpeg')
-			os.remove(os.path.join(source, each))
-			webp_2_jpg = webp_2_jpg + 1
+		convertWEBP(each)
+		webp_2_gif = webp_2_gif + 1
 	elif each.lower().endswith('.webm'):
-		nm = os.path.splitext(each)
-		subprocess.run(['ffmpeg','-y','-i',os.path.join(source,each), (source+nm[0]+'.mp4')],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-		os.remove(os.path.join(source, each))
+		convertWEBM(each)
 		webm_2_mp4 = webm_2_mp4 + 1
 	elif each.lower().endswith('.mov'):
-		nm = os.path.splitext(each)
-		subprocess.run(['ffmpeg','-y','-i',os.path.join(source,each), (source+nm[0]+'.mp4')],stdout=subprocess.DEVNULL,stderr=subprocess.STDOUT)
-		os.remove(os.path.join(source, each))
+		convertMOV(each)
 		mov_2_mp4 = mov_2_mp4 + 1
 	else:
 		pass
+		
 clean_bar.finish()
+
+"""Get list of cleaned files."""
 files = [f for f in os.listdir(source) if os.path.isfile(os.path.join(source, f))]
 p_files = [f for f in os.listdir(p_vids) if os.path.isfile(os.path.join(p_vids,f))]
 
+
+
+"""Open up hash dictionary."""
 with open('/home/den/hashdict.json') as d:
 	data = d.read()
-hashdict = json.loads(data)
+	global hashdict
+	hashdict = json.loads(data)
 
 hash_mv_bar = IncrementalBar("Hashing and moving:", max=(len(files)+len(p_files)))
+
+
 for each in files:
+	orig = os.path.join(source,each)
 	if each.lower().endswith('.jpg'):
 		hash_mv_bar.next()
-		hash = hashit(os.path.join(source,each))
-		if (hash + '.jpg') in hashdict:
-			os.remove(os.path.join(source,each))
+		key = newFile(orig,'.jpg')
+		if key in hashdict:
+			os.remove(orig)
 			dupes_found = dupes_found + 1
 		else:
-			t_bytes = t_bytes + os.path.getsize(os.path.join(source,each))
-			shutil.move(os.path.join(source,each), dest_pics + hash + '.jpg')
+			t_bytes = t_bytes + os.path.getsize(orig)
+			shutil.move(orig, dest_pics + key)
 			jpgs = jpgs + 1
-			hashdict[(hash + '.jpg')] = str(datetime.datetime.now())
+			hashdict[key] = str(datetime.datetime.now())
 	elif each.lower().endswith('.jpeg'):
 		hash_mv_bar.next()
-		hash = hashit(os.path.join(source,each))
-		if (hash + '.jpg') in hashdict:
-			os.remove(os.path.join(source,each))
+		key = newFile(orig,'.jpg')
+		if key in hashdict:
+			os.remove(orig)
 			dupes_found = dupes_found + 1
 		else:
-			t_bytes = t_bytes + os.path.getsize(os.path.join(source,each))
-			shutil.move(os.path.join(source,each), dest_pics + hash + '.jpg')
+			t_bytes = t_bytes + os.path.getsize(orig)
+			shutil.move(orig, dest_pics + key)
 			jpgs = jpgs + 1
-			hashdict[(hash + '.jpg')] = str(datetime.datetime.now())
+			hashdict[key] = str(datetime.datetime.now())
 	elif each.lower().endswith('.mp4'):
 		hash_mv_bar.next()
-		hash = hashit(os.path.join(source,each))
-		if (hash + '.mp4') in hashdict:
-			os.remove(os.path.join(source,each))
+		key = newFile(orig,'.mp4')
+		if key in hashdict:
+			os.remove(orig)
 			dupes_found = dupes_found + 1
 		else:
-			t_bytes = t_bytes + os.path.getsize(os.path.join(source,each))
-			shutil.move(os.path.join(source,each), dest_pics + hash + '.mp4')
+			t_bytes = t_bytes + os.path.getsize(orig)
+			shutil.move(orig, dest_vids + key)
 			mp4s = mp4s + 1
-			hashdict[(hash + '.mp4')] = str(datetime.datetime.now())
+			hashdict[key] = str(datetime.datetime.now())
 	elif each.lower().endswith('.png'):
 		hash_mv_bar.next()
-		hash = hashit(os.path.join(source,each))
-		if (hash + '.png') in hashdict:
-			os.remove(os.path.join(source,each))
+		key = newFile(orig,'.png')
+		if key in hashdict:
+			os.remove(orig)
 			dupes_found = dupes_found + 1
 		else:
-			t_bytes = t_bytes + os.path.getsize(os.path.join(source,each))
-			shutil.move(os.path.join(source,each), dest_pics + hash + '.png')
+			t_bytes = t_bytes + os.path.getsize(orig)
+			shutil.move(orig, dest_pics + key)
 			pngs = pngs + 1
-			hashdict[(hash + '.png')] = str(datetime.datetime.now())
+			hashdict[key] = str(datetime.datetime.now())
 	elif each.lower().endswith('.gif'):
 		hash_mv_bar.next()
-		hash = hashit(os.path.join(source,each))
-		if (hash + '.gif') in hashdict:
-			os.remove(os.path.join(source,each))
+		key = newFile(orig,'.gif')
+		if key in hashdict:
+			os.remove(orig)
 			dupes_found = dupes_found + 1
 		else:
-			t_bytes = t_bytes + os.path.getsize(os.path.join(source,each))
-			shutil.move(os.path.join(source,each), dest_pics + hash + '.gif')
+			t_bytes = t_bytes + os.path.getsize(orig)
+			shutil.move(orig, dest_pics + key)
 			gifs = gifs + 1
-			hashdict[(hash + '.gif')] = str(datetime.datetime.now())
+			hashdict[key] = str(datetime.datetime.now())
 	elif each.lower().endswith('.gifv'):
 		hash_mv_bar.next()
-		hash = hashit(os.path.join(source,each))
-		if (hash + '.gif') in hashdict:
-			os.remove(os.path.join(source,each))
+		key = newFile(orig,'.gif')
+		if key in hashdict:
+			os.remove(orig)
 			dupes_found = dupes_found + 1
 		else:
-			t_bytes = t_bytes + os.path.getsize(os.path.join(source,each))
-			shutil.move(os.path.join(source,each), dest_pics + hash + '.gif')
+			t_bytes = t_bytes + os.path.getsize(orig)
+			shutil.move(orig, dest_pics + key)
 			gifs = gifs + 1
-			hashdict[(hash + '.gif')] = str(datetime.datetime.now())
+			hashdict[key] = str(datetime.datetime.now())
 	elif each.lower().endswith('.pdf'):
 		hash_mv_bar.next()
-		t_bytes = t_bytes + os.path.getsize(os.path.join(source,each))
-		shutil.move(os.path.join(source,each), os.path.join(dest_books,each))
+		t_bytes = t_bytes + os.path.getsize(orig)
+		shutil.move(orig, os.path.join(dest_books,each))
 		pdfs = pdfs + 1
 	elif each.lower().endswith('.epub'):
 		hash_mv_bar.next()
-		t_bytes = t_bytes + os.path.getsize(os.path.join(source,each))
-		shutil.move(os.path.join(source,each), os.path.join(dest_books,each))
+		t_bytes = t_bytes + os.path.getsize(orig)
+		shutil.move(orig, os.path.join(dest_books,each))
 		epubs = epubs + 1
 	else:
 		hash_mv_bar.next()
 		pass
+
 now = datetime.datetime.now()
 newdir = os.path.join("/Starfire/Porn/",str(now))
-os.mkdir(newdir)
+
+if len(p_files) == 0:
+	pass
+else: 
+	os.mkdir(newdir)
 for each in p_files:
 	hash_mv_bar.next()
 	t_bytes = t_bytes + os.path.getsize(os.path.join(p_vids,each))
@@ -186,6 +222,7 @@ print("PDFs moved: " + str(pdfs))
 print("EPUBs moved: " + str(epubs))
 print("Porn moved: " + str(porn))
 print("Dupes found: " + str(dupes_found))
+print(len(hashdict))
 if t_GB > 1:
 	print("Total transfer = " + ("%.2f" % t_GB) + " GBs.")
 elif t_MB > 1:
